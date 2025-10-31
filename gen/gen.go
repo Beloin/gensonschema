@@ -651,8 +651,9 @@ func Gen(config Config) error {
 
 func extractDescription(propdesc string) string {
 	descCmnt := ""
-	if propdesc != "" {
-		descCmnt = fmt.Sprintf("// %s\n", propdesc)
+	for _, line := range strings.Split(propdesc, "\n") {
+		line = strings.TrimSpace(line)
+		descCmnt += fmt.Sprintf("// %s\n", line)
 	}
 	return descCmnt
 }
