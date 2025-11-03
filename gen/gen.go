@@ -17,9 +17,9 @@ import (
 )
 
 type structType struct {
-	name        string
-	description string
-	methods     []string
+	name    string
+	comment string
+	methods []string
 
 	asGetters map[string]struct{}
 }
@@ -87,7 +87,7 @@ func (s *structType) MakeStoreWith(typ, defaultJson string, mergeSet bool) {
 }
 
 func (s *structType) AddGetter(name, path, propdesc, styp string) {
-	descCmnt := extractDescription(propdesc)
+	descCmnt := toComment(propdesc)
 
 	s.methods = append(s.methods, fmt.Sprintf(`
 		%sfunc (r *%v) Get%v() *%v {
@@ -200,7 +200,7 @@ func (w writer) Import(alias, imprt string) {
 }
 
 func (w writer) StructStart(str *structType) {
-	desc := extractDescription(str.description)
+	desc := toComment(str.comment)
 	w.w.Write([]byte(fmt.Sprintf("%stype %v struct {\n", desc, str.name)))
 }
 
@@ -308,7 +308,7 @@ func (g *generator) genTypeFor(name string, sch *jsonschema.Schema) (string, str
 			dType = "[]" + itemDtype
 		}
 
-		styp := &structType{name: name, description: sch.Description}
+		styp := &structType{name: name, comment: sch.Description}
 		styp.MakeStore(dType, "[]")
 
 		styp.AddIndexGetter(itemStyp, itemDtype)
@@ -327,7 +327,7 @@ func (g *generator) genTypeFor(name string, sch *jsonschema.Schema) (string, str
 }
 
 func (g *generator) buildTypeFor(name string, desc string, schs []*jsonschema.Schema, mergeSet bool) (string, string, error) {
-	storeType := &structType{name: name, description: desc}
+	storeType := &structType{name: name, comment: desc}
 
 	commonGoType := ""
 
@@ -649,11 +649,11 @@ func Gen(config Config) error {
 	return nil
 }
 
-func extractDescription(propdesc string) string {
-	descCmnt := ""
-	for _, line := range strings.Split(propdesc, "\n") {
+func toComment(str string) string {
+	comment := ""
+	for _, line := range strings.Split(str, "\n") {
 		line = strings.TrimSpace(line)
-		descCmnt += fmt.Sprintf("// %s\n", line)
+		comment += fmt.Sprintf("// %s\n", line)
 	}
-	return descCmnt
+	return comment
 }
